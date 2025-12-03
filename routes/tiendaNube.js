@@ -1,8 +1,8 @@
-import express from "express";
-const router = express.Router();
+import { Router } from "express";
+const router = Router();
 
-router.post("/productos", (req, res) => {
-  res.json({ msg: "Endpoint de productos de Tienda Nube" });
+router.get("/", (req, res) => {
+  res.json({ message: "Ruta Tienda Nube funcionando" });
 });
 
 export default router;
