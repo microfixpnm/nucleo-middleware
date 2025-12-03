@@ -1,42 +1,51 @@
-// services/nucleoService.js
-const axios = require('axios');
-require('dotenv').config();
+import axios from "axios";
 
-const nucleoApi = axios.create({
-    baseURL: process.env.NUCLEO_URL,
-    timeout: 10000,
-    headers: {
-        'Content-Type': 'application/json'
-    }
-});
+class NucleoService {
+  constructor() {
+    this.baseUrl = process.env.NUCLEO_URL;     // URL base de Grupo Núcleo
+    this.apiKey = process.env.NUCLEO_API_KEY;  // Token o API Key
+  }
 
-/**
- * Ejemplo: obtener datos desde Nucleo
- */
-async function getDataFromNucleo(endpoint) {
+  // Método base para hacer requests
+  async request(method, endpoint, data = null) {
     try {
-        const response = await nucleoApi.get(endpoint);
-        return response.data;
+      const response = await axios({
+        method,
+        url: `${this.baseUrl}${endpoint}`,
+        data,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${this.apiKey}`
+        }
+      });
+
+      return response.data;
+
     } catch (error) {
-        console.error("Error al consultar Nucleo:", error.message);
-        throw error;
+      console.error("Error en NucleoService:", error.response?.data || error);
+      throw new Error("Error comunicándose con Grupo Núcleo");
     }
+  }
+
+  // Obtener productos
+  async getProducts() {
+    return this.request("GET", "/productos");
+  }
+
+  // Obtener stock de un producto
+  async getStock(sku) {
+    return this.request("GET", `/stock/${sku}`);
+  }
+
+  // Obtener precio de un producto
+  async getPrice(sku) {
+    return this.request("GET", `/precio/${sku}`);
+  }
+
+  // Crear pedido
+  async createOrder(orderData) {
+    return this.request("POST", "/pedidos", orderData);
+  }
 }
 
-/**
- * Ejemplo: enviar datos hacia Nucleo
- */
-async function sendDataToNucleo(endpoint, payload) {
-    try {
-        const response = await nucleoApi.post(endpoint, payload);
-        return response.data;
-    } catch (error) {
-        console.error("Error al enviar datos a Nucleo:", error.message);
-        throw error;
-    }
-}
-
-module.exports = {
-    getDataFromNucleo,
-    sendDataToNucleo
-};
+export default new NucleoService();
